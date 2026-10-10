@@ -26,6 +26,7 @@ import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import org.schabi.newpipe.extractor.localization.Localization
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
 import org.schabi.newpipe.extractor.stream.DeliveryMethod
+import org.schabi.newpipe.extractor.stream.AudioTrackType
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.extractor.downloader.Request as NpRequest
@@ -146,9 +147,16 @@ class YtSubs : AnimeHttpSource() {
 
         val audio = info.audioStreams
             .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
-            .sortedByDescending { it.averageBitrate }
-            .take(2)
-            .map { Track(it.content, "${it.format?.suffix ?: "audio"} ${it.averageBitrate}kbps") }
+            .groupBy { it.audioTrackId ?: "default" }
+            .map { (_, streams) -> streams.maxByOrNull { it.averageBitrate }!! }
+            .sortedBy { if (it.audioTrackType == AudioTrackType.ORIGINAL) 0 else 1 }
+            .map { stream ->
+                val label = stream.audioTrackName
+                    ?: stream.audioLocale?.displayLanguage
+                    ?: "Audio"
+                val tag = if (stream.audioTrackType == AudioTrackType.ORIGINAL) " (original)" else ""
+                Track(stream.content, "$label$tag ${stream.averageBitrate}kbps")
+            }
 
         val withSound = info.videoStreams
             .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
