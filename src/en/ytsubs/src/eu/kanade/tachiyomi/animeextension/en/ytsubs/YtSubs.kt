@@ -46,7 +46,7 @@ class YtSubs : AnimeHttpSource() {
     private val youtube = ServiceList.YouTube
 
     private val npInit by lazy {
-        NewPipe.init(OkDownloader(client), Localization("en", "US"))
+        NewPipe.init(OkDownloader(client), Localization("hi", "IN"))
     }
 
     private fun initNewPipe() {
