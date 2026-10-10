@@ -33,7 +33,8 @@ rootProject.name = "Yuzono-Anime"
 /**
  * Add or remove modules to load as needed for local development here.
  */
-loadAllIndividualExtensions()
+// loadAllIndividualExtensions()
+loadIndividualExtension("en", "ytsubs")
 // loadIndividualExtension("all", "jellyfin")
 
 /**

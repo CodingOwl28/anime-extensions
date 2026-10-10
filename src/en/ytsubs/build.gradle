@@ -1,0 +1,18 @@
+ext {
+    extName = 'YT Subs'
+    extClass = '.YtSubs'
+    libVersion = 16
+    extVersionCode = 1
+}
+
+apply plugin: "kei.plugins.extension.legacy"
+
+android {
+    defaultConfig {
+        minSdk = 26
+    }
+}
+
+dependencies {
+    implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")
+}
