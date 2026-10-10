@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.animesource.model.AnimesPage
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.SEpisode
+import eu.kanade.tachiyomi.animesource.model.Track
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import kotlinx.coroutines.Dispatchers
@@ -142,14 +143,35 @@ class YtSubs : AnimeHttpSource() {
     override suspend fun getVideoList(hoster: Hoster): List<Video> = withContext(Dispatchers.IO) {
         initNewPipe()
         val info = StreamInfo.getInfo(youtube, hoster.hosterUrl)
-        info.videoStreams
+
+        val audio = info.audioStreams
+            .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
+            .sortedByDescending { it.averageBitrate }
+            .take(2)
+            .map { Track(it.content, "${it.format?.suffix ?: "audio"} ${it.averageBitrate}kbps") }
+
+        val withSound = info.videoStreams
             .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
             .map { stream ->
                 Video(
                     videoUrl = stream.content,
-                    videoTitle = "${stream.resolution} ${stream.format?.name ?: ""}".trim(),
+                    videoTitle = "${stream.resolution} (with sound)",
                 )
             }
+
+        val separate = info.videoOnlyStreams
+            .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
+            .sortedByDescending { it.height }
+            .map { stream ->
+                Video(
+                    videoUrl = stream.content,
+                    videoTitle = "${stream.resolution} ${stream.format?.suffix ?: ""}".trim(),
+                    audioTracks = audio,
+                )
+            }
+
+        // Best quality first
+        if (audio.isEmpty()) withSound else separate + withSound
     }
 
     // ===================== Unused (this source works without them) =====================
