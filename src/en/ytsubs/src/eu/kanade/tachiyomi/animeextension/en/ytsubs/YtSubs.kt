@@ -129,6 +129,7 @@ class YtSubs : AnimeHttpSource() {
                 name = item.name
                 url = item.url
                 preview_url = item.thumbnails.firstOrNull()?.url
+                scanlator = formatViews(item.viewCount)
                 episode_number = (items.size - index).toFloat()
                 date_upload = item.uploadDate?.offsetDateTime()?.toInstant()?.toEpochMilli() ?: -1L
             }
@@ -194,6 +195,13 @@ class YtSubs : AnimeHttpSource() {
     override fun episodeListParse(response: Response): List<SEpisode> = throw UnsupportedOperationException()
     override fun seasonListParse(response: Response): List<SAnime> = throw UnsupportedOperationException()
     override fun hosterListParse(response: Response): List<Hoster> = throw UnsupportedOperationException()
+
+    private fun formatViews(count: Long): String? = when {
+        count < 0 -> null
+        count >= 1_000_000 -> String.format(java.util.Locale.US, "%.1fM views", count / 1_000_000.0)
+        count >= 1_000 -> String.format(java.util.Locale.US, "%.1fK views", count / 1_000.0)
+        else -> "$count views"
+    }
 
     companion object {
         private const val MAX_PAGES = 1
