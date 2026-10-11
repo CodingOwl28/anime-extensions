@@ -129,6 +129,7 @@ class YtSubs : AnimeHttpSource() {
             SEpisode.create().apply {
                 name = item.name
                 url = item.url
+                preview_url = item.thumbnails.firstOrNull()?.url
                 episode_number = (items.size - index).toFloat()
                 date_upload = item.uploadDate?.offsetDateTime()?.toInstant()?.toEpochMilli() ?: -1L
             }
