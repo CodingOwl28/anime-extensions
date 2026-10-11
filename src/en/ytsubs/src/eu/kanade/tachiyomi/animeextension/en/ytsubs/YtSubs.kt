@@ -27,7 +27,6 @@ import org.schabi.newpipe.extractor.localization.Localization
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
 import org.schabi.newpipe.extractor.stream.AudioTrackType
 import org.schabi.newpipe.extractor.stream.DeliveryMethod
-import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.extractor.downloader.Request as NpRequest
 import org.schabi.newpipe.extractor.downloader.Response as NpResponse
@@ -144,7 +143,7 @@ class YtSubs : AnimeHttpSource() {
 
     override suspend fun getVideoList(hoster: Hoster): List<Video> = withContext(Dispatchers.IO) {
         initNewPipe()
-        val info = StreamInfo.getInfo(youtube, hoster.hosterUrl)
+        val info = youtube.getStreamExtractor(hoster.hosterUrl).also { it.fetchPage() }
 
         val audio = info.audioStreams
             .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
@@ -197,7 +196,7 @@ class YtSubs : AnimeHttpSource() {
     override fun hosterListParse(response: Response): List<Hoster> = throw UnsupportedOperationException()
 
     companion object {
-        private const val MAX_PAGES = 3
+        private const val MAX_PAGES = 1
     }
 }
 
