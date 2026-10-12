@@ -2,7 +2,7 @@ ext {
     extName = 'YT Subs'
     extClass = '.YtSubs'
     libVersion = 16
-    extVersionCode = 8
+    extVersionCode = 9
 }
 
 apply plugin: "kei.plugins.extension.legacy"
