@@ -61,7 +61,9 @@ class YtSubs : AnimeHttpSource() {
     override suspend fun getLatestUpdates(page: Int): AnimesPage = AnimesPage(emptyList(), false)
 
     override suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList): AnimesPage {
-        val results = withContext(Dispatchers.IO) { searchChannels(query) }
+        val results = withContext(Dispatchers.IO) {
+            if (query.startsWith("video:")) searchVideos(query.removePrefix("video:")) else searchChannels(query)
+        }
         return AnimesPage(results, false)
     }
 
@@ -88,6 +90,25 @@ class YtSubs : AnimeHttpSource() {
                     url = item.url
                     thumbnail_url = item.thumbnails.firstOrNull()?.url
                     description = item.description
+                }
+            }
+    }
+
+    private fun searchVideos(query: String): List<SAnime> {
+        initNewPipe()
+        val q = query.trim()
+        if (q.isEmpty()) return emptyList()
+        val extractor = youtube.getSearchExtractor(q, listOf(YoutubeSearchQueryHandlerFactory.VIDEOS), "")
+        extractor.fetchPage()
+        return extractor.initialPage.items
+            .filterIsInstance<StreamInfoItem>()
+            .map { item ->
+                SAnime.create().apply {
+                    title = item.name
+                    url = item.url
+                    thumbnail_url = item.thumbnails.firstOrNull()?.url
+                    author = item.uploaderName
+                    description = listOfNotNull(formatViews(item.viewCount), item.textualUploadDate).joinToString(" \u2022 ")
                 }
             }
     }
